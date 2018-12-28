@@ -70,9 +70,13 @@ kubectl create configmap load-balancer-config --from-file load_balancer_nginx.co
 Then you can restart the load balancer with the new config by running
 
 ```bash
-$ kubectl rolling-update load-balancer --image nginx:1.15-alpine --image-pull-policy=Always
+kubectl rolling-update load-balancer --image nginx:1.15-alpine --image-pull-policy=Always
 ```
 
 Or you can simply go into the k8s UI and destroy the existing pod and let the replication controller restart it.
 
-##
+## Setup Secrets
+
+```
+kubectl create secret generic home --from-literal=cookie=<YOUR_COOKIE>
+```
