@@ -23,10 +23,20 @@ spec:
             secretKeyRef:
               name: home
               key: cookie
+        - name: ONE_SIGNAL_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: home
+              key: one_signal_api_key
         - name: POD_IP
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        - name: SECRET_KEY_BASE
+          valueFrom:
+            secretKeyRef:
+              name: home
+              key: secret_key_base
         ports:
           - containerPort: 4000
         resources:

@@ -78,5 +78,5 @@ Or you can simply go into the k8s UI and destroy the existing pod and let the re
 ## Setup Secrets
 
 ```
-kubectl create secret generic home --from-literal=cookie=<YOUR_COOKIE>
+kubectl create secret generic home --from-literal=cookie=<YOUR_COOKIE> --from-literal=one_signal_api_key=<YOUR_API_KEY> --from-literal=secret_key_base=<YOUR_SECRET_KEY_BASE>
 ```
