@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: home
-        image: hqmq/home:0.4.0
+        image: hqmq/home:0.4.1
         imagePullPolicy: Always
         command: ["elixir"]
         args: ["--no-halt", "--cookie", "$(COOKIE)", "--name", "home@$(POD_IP)", "-S", "mix", "phx.server"]
