@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: blog
-        image: hqmq/blog:2018-07-29.1
+        image: hqmq/blog:latest
         imagePullPolicy: Always
         ports:
           - containerPort: 80
