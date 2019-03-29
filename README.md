@@ -29,9 +29,9 @@ If you want to add another domain name or just renew the TLS certificate you sho
 Now update the secrets with a command like:
 
 ```
-kubectl create secret generic load-balancer --from-file=dhparam.pem=secrets/dhparam.pem --from-file=nginx.crt=secrets/app.spiff.com.cert.pem --from-file=nginx.key=secrets/app.spiff.com.key.pem --dry-run -o=json | kubectl apply -f -
+kubectl create secret generic load-balancer --from-file=dhparam.pem=secrets/dhparam.pem --from-file=nginx.crt=secrets/riesd.com.cert.pem --from-file=nginx.key=secrets/riesd.com.key.pem --dry-run -o=json | kubectl apply -f -
 # run a rolling deploy to pickup the new certs
-kubectl apply -f load_balancer.yaml && kubectl rolling-update load-balancer --image us.gcr.io/argon-magnet-190822/load_balancer:latest --image-pull-policy=Always
+kubectl rolling-update load-balancer --image nginx:1.15-alpine --image-pull-policy=Always
 ```
 
 ## Setting Up The Load Balancer
