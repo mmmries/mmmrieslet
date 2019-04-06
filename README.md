@@ -23,17 +23,6 @@ These secrets will be used by the load balancer a little later.
 > This does not account for renewing certificates which needs to happen every 3 months with letsencrypt.
 > Hopefully in the future I'll automate this process.
 
-## Updating the TLS Certificate
-
-If you want to add another domain name or just renew the TLS certificate you should start by running the `certbot` command above and copying the files into `./secrets` in this project.
-Now update the secrets with a command like:
-
-```
-kubectl create secret generic load-balancer --from-file=dhparam.pem=secrets/dhparam.pem --from-file=nginx.crt=secrets/riesd.com.cert.pem --from-file=nginx.key=secrets/riesd.com.key.pem --dry-run -o=json | kubectl apply -f -
-# run a rolling deploy to pickup the new certs
-kubectl rolling-update load-balancer --image nginx:1.15-alpine --image-pull-policy=Always
-```
-
 ## Setting Up The Load Balancer
 
 For now I'm just using a simple port listener and an nginx instance for a load balancer.
@@ -44,39 +33,8 @@ We will also generate some custom diff-helman params like this:
 
 ```bash
 $ openssl dhparam -out secrets/dhparam.pem 4096
-$ kubectl create secret generic load-balancer --from-file=dhparam.pem=secrets/dhparam.pem --from-file=nginx.crt=secrets/riesd.com.cert.pem --from-file=nginx.key=secrets/riesd.com.key.pem
+$ scp -r secrets root@prod:~/secrets
+$ scp load_balancer_nginx.conf root@prod:~/load_balancer_nginx.conf
 ```
 
-Now we create a config map to hold our nginx configuration
 
-```bash
-kubectl create configmap load-balancer-config --from-file load_balancer_nginx.conf
-```
-
-And finally we create the load balancer pod that will load in the TLS secrets and the nginx config with a simple:
-
-```bash
-$ kubectl apply -f load_balancer.yaml
-```
-
-## Updating the Load Balancer
-
-When making changes to the load balancer, you can edit the `load_balancer_nginx.conf` file, then update the configmap with
-
-```bash
-kubectl create configmap load-balancer-config --from-file load_balancer_nginx.conf --dry-run -o=json | kubectl apply -f -
-```
-
-Then you can restart the load balancer with the new config by running
-
-```bash
-kubectl rolling-update load-balancer --image nginx:1.15-alpine --image-pull-policy=Always
-```
-
-Or you can simply go into the k8s UI and destroy the existing pod and let the replication controller restart it.
-
-## Setup Secrets
-
-```
-kubectl create secret generic home --from-literal=cookie=<YOUR_COOKIE> --from-literal=one_signal_api_key=<YOUR_API_KEY> --from-literal=secret_key_base=<YOUR_SECRET_KEY_BASE>
-```
