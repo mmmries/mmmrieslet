@@ -1,1 +1,1 @@
-docker run -d -p 8083:4000 --name showoff hqmq/showoff:0.1.0
+docker run -d -p 8083:4000 -v /root/showoff:/opt/app/lib/showoff-0.2.0/priv/drawings --name showoff hqmq/showoff:0.1.1

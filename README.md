@@ -37,4 +37,8 @@ $ scp -r secrets root@prod:~/secrets
 $ scp load_balancer_nginx.conf root@prod:~/load_balancer_nginx.conf
 ```
 
+# Persistence For Showoff
 
+The showoff application uses a DETS table to persists "published" drawings.
+On the server create a directory called `showoff` and then copy the current version of the DETS file into that directory as `/root/showoff/recent.dets`.
+Then you will map that file into the docker container (see `bin/start_showoff.sh`).
