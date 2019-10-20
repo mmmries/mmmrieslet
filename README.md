@@ -6,7 +6,7 @@ Hosting setup for personal projects.
 
 ```
 brew install certbot
-sudo certbot --manual -d "riesd.com" -d "devblog.riesd.com" -d "games.riesd.com" -d "goghbots.riesd.com"  -d "home.riesd.com" -d "oprah.riesd.com" -d "showoff.riesd.com" -d "walybot.riesd.com" --preferred-challenge dns-01 certonly
+sudo certbot --manual -d "riesd.com" -d "devblog.riesd.com" -d "games.riesd.com" -d "home.riesd.com" -d "showoff.riesd.com" --preferred-challenge dns-01 certonly
 ```
 
 You will be told to create a DNS record, then certbot will check that the DNS entry is there to prove that you control the domain.
