@@ -1,1 +1,0 @@
-docker run -d -p 8080:4000 --name blog hqmq/blog:latest bin/blog start

@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: load-balancer
+  labels:
+    app: load-balancer
+    tier: load-balancer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: load-balancer
+      tier: load-balancer
+  template:
+    metadata:
+      labels:
+        app: load-balancer
+        tier: load-balancer
+    spec:
+      containers:
+      - image: nginx:1.17-alpine
+        imagePullPolicy: Always
+        name: load-balancer
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        volumeMounts:
+        - name: load-balancer-secrets
+          mountPath: "/etc/nginx"
+          readOnly: true
+      volumes:
+      - name: load-balancer-secrets
+        secret:
+          secretName: load-balancer
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: load-balancer
+spec:
+  type: LoadBalancer
+  ports:
+  - name: https
+    port: 443
+    targetPort: 443
+  - name: http
+    port: 80
+    targetPort: 80
+  selector:
+    app: load-balancer

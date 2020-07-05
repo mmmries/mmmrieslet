@@ -2,39 +2,32 @@
 
 Hosting setup for personal projects.
 
-## Generating A TLS Certificate
+## Create a Kubernetes Cluster
+
+These projects don't need much in terms of resources, so you probably want to create a minimally sized cluster.
+
+## Setting up the Load Balancer
+
+First you'll need some initial load balancer configuration files.
+Then load those files into a secret:
 
 ```
-brew install certbot
-sudo certbot --manual -d "riesd.com" -d "devblog.riesd.com" -d "games.riesd.com" -d "home.riesd.com" -d "showoff.riesd.com" --preferred-challenge dns-01 certonly
+kubectl create secret generic load-balancer --from-file=dhparam.pem=secrets/dhparam.pem --from-file=riesd.com.cert.pem=secrets/riesd.com.cert.pem --from-file=riesd.com.key.pem=secrets/riesd.com.key.pem --from-file=mime.types=mime.types --from-file=nginx.conf=load_balancer_nginx.conf --dry-run -o=json | kubectl apply -f -
 ```
 
-You will be told to create a DNS record, then certbot will check that the DNS entry is there to prove that you control the domain.
-Then it will tell you where your key and certificate were created.
-Copy these files into `secrets`.
+We also need to create a persistent disk for showoff to store its DETS database.
 
 ```
-sudo cp /etc/letsencrypt/live/riesd.com/fullchain.pem secrets/riesd.com.cert.pem
-sudo cp /etc/letsencrypt/live/riesd.com/privkey.pem secrets/riesd.com.key.pem
+gcloud compute disks create --size=1GB showoff-dets
 ```
 
-These secrets will be used by the load balancer a little later.
+Now start up the various services and finish off with starting the load balancer
 
-> This does not account for renewing certificates which needs to happen every 3 months with letsencrypt.
-> Hopefully in the future I'll automate this process.
-
-## Setting Up The Load Balancer
-
-For now I'm just using a simple port listener and an nginx instance for a load balancer.
-
-First we need to setup the secrets that we will put into the load balancer.
-You should have already created the TLS secret above.
-We will also generate some custom diff-helman params like this:
-
-```bash
-$ openssl dhparam -out secrets/dhparam.pem 4096
-$ scp -r secrets root@prod:~/secrets
-$ scp load_balancer_nginx.conf root@prod:~/load_balancer_nginx.conf
+```
+kubectl apply -f blog.yaml
+kubectl apply -f ref.yaml
+kubectl apply -f showoff.yaml
+kubectl apply -f load_balancer.yaml
 ```
 
 ## Updating the TLS Certificate
@@ -42,8 +35,7 @@ $ scp load_balancer_nginx.conf root@prod:~/load_balancer_nginx.conf
 We can update the TLS certificate by running some commands inside the load balancer docker container.
 
 ```
-$ ssh riesd.com
-$ docker exec -it load_balancer sh
+kubectl exec -it load-balancer-97b9784cd-gz6ll -- sh
 ```
 
 Now that you are inside the load balancer container, you'll need to start by making a web root directory.
@@ -58,19 +50,16 @@ Now we need to install certbot and run the command to have it do the secure hand
 
 ```
 apk add --no-cache certbot
-certbot -n --agree-tos --email 'riesmmm@gmail.com' --webroot --webroot-path /var/www -d "riesd.com" -d "devblog.riesd.com" -d "games.riesd.com" -d "home.riesd.com" -d "showoff.riesd.com" certonly
+certbot -n --agree-tos --email 'riesmmm@gmail.com' --webroot --webroot-path /var/www -d "riesd.com" -d "blog.riesd.com" -d "devblog.riesd.com" -d "games.riesd.com" -d "home.riesd.com" -d "ref.riesd.com" -d "showoff.riesd.com" certonly
 ```
 
 Now we need to copy the certificate and key into the right place and tell nginx to update its settings.
 
 ```
-cp /etc/letsencrypt/live/riesd.com/fullchain.pem /etc/ssl/nginx/riesd.com.cert.pem
-cp /etc/letsencrypt/live/riesd.com/privkey.pem /etc/ssl/nginx/riesd.com.key.pem
-kill -HUP 1
+cat /etc/letsencrypt/live/riesd.com/fullchain.pem
+# copy-paste into secrets/riesd.com.cert.pem
+cat /etc/letsencrypt/live/riesd.com/privkey.pem
+# copy-paste into secrets/riesd.com.key.pem
 ```
 
-# Persistence For Showoff
-
-The showoff application uses a DETS table to persists "published" drawings.
-On the server create a directory called `showoff` and then copy the current version of the DETS file into that directory as `/root/showoff/recent.dets`.
-Then you will map that file into the docker container (see `bin/start_showoff.sh`).
+Now re-create the kubernetes secret that holds those files as shows in the "setting up the load balancer" above and kill the existing pod so it starts with the new secret.

@@ -1,0 +1,43 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: showoff
+  labels:
+    app: showoff
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: showoff
+  template:
+    metadata:
+      labels:
+        app: showoff
+    spec:
+      containers:
+        - name: showoff
+          image: hqmq/showoff:0.1.1
+          imagePullPolicy: Always
+          ports:
+            - name: web
+              containerPort: 4000
+          resources:
+            requests:
+              cpu: 10m
+              memory: 80M
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: showoff
+
+spec:
+  ports:
+    - protocol: TCP
+      name: web
+      port: 4000
+  selector:
+    app: showoff

@@ -1,0 +1,43 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: ref
+  labels:
+    app: ref
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ref
+  template:
+    metadata:
+      labels:
+        app: ref
+    spec:
+      containers:
+        - name: ref
+          image: hqmq/ref:0.1.1
+          imagePullPolicy: Always
+          ports:
+            - name: web
+              containerPort: 4000
+          resources:
+            requests:
+              cpu: 10m
+              memory: 40M
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ref
+
+spec:
+  ports:
+    - protocol: TCP
+      name: web
+      port: 4000
+  selector:
+    app: ref

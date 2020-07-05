@@ -1,0 +1,44 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  namespace: default
+  name: blog
+  labels:
+    app: blog
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog
+  template:
+    metadata:
+      labels:
+        app: blog
+    spec:
+      containers:
+        - name: blog
+          image: hqmq/blog:latest
+          imagePullPolicy: Always
+          command: ["bin/blog", "start"]
+          ports:
+            - name: web
+              containerPort: 4000
+          resources:
+            requests:
+              cpu: 10m
+              memory: 40M
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blog
+
+spec:
+  ports:
+    - protocol: TCP
+      name: web
+      port: 4000
+  selector:
+    app: blog
